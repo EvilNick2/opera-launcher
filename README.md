@@ -1,1 +1,1 @@
-# opera-launcher
+# A launcher for Opera GX profiles
