@@ -66,6 +66,7 @@ $ pip install tkinter cryptography Pillow sv_ttk
 
 # Run the project
 $ python Opera-Launch-GUI.py
+```
 
 ## :memo: License ##
 
