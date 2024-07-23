@@ -29,9 +29,13 @@ profilesJSON = []
 
 def detectProfilesJSON():
 		for uuid in os.listdir(profilesPath):
-				# Change into profile directory
-				os.chdir(f"{profilesPath}\\{uuid}")
-
+				profileDir = f"{profilesPath}\\{uuid}"
+				if os.path.isdir(profileDir):
+						# Change into profile directory only if it exists
+						os.chdir(profileDir)
+				else:
+						print(f"Directory does not exist: {profileDir}")
+						
 				# Check if "Opera On The Side.ico" exists in the directory
 				iconfile = "Opera On The Side.ico" if "Opera On The Side.ico" in os.listdir(".") else ""
 
@@ -54,35 +58,38 @@ def detectProfilesJSON():
 
 								break
 
+from PIL import Image, ImageTk
+
 def generate_buttons(root, strings, image_paths, uuids):
-		# Path to the application
-		app = os.environ.get("LOCALAPPDATA") + "\\Programs\\Opera GX\\launcher.exe"
+    # Path to the application
+    app = os.environ.get("LOCALAPPDATA") + "\\Programs\\Opera GX\\launcher.exe"
 
-		# Common arguments
-		common_arg = ['--with-feature:side-profiles --no-default-browser-check --disable-usage-statistics-question']
-		
-		for string, image_path, uuid in zip(strings, image_paths, uuids):
-				# Load the image
-				image = Image.open(image_path)
+    # Common arguments
+    common_arg = ['--with-feature:side-profiles --no-default-browser-check --disable-usage-statistics-question']
+    
+    for string, image_path, uuid in zip(strings, image_paths, uuids):
+        if os.path.exists(image_path):
+            # Load the image
+            image = Image.open(image_path)
 
-				# Resize the image
-				image = image.resize((128, 128), Image.BICUBIC)
+            # Resize the image using Image.Resampling.LANCZOS
+            image = image.resize((128, 128), Image.Resampling.LANCZOS)
 
-				photo = ImageTk.PhotoImage(image)
+            photo = ImageTk.PhotoImage(image)
 
-				# Add spaces to the beginning of the text
-				padded_string = '   ' + string
+            # Add spaces to the beginning of the text
+            padded_string = '   ' + string
 
-				
-				# Create the button with the configured style
-				button = ttk.Button(root, text=padded_string, image=photo, compound='left', style='TButton')
+            # Create the button with the configured style
+            button = ttk.Button(root, text=padded_string, image=photo, compound='left', style='TButton')
 
-				# Set the command to launch the application with the common arguments and the profile UUID
-				button.config(command=lambda uuid=uuid: subprocess.run([app] + [f'--side-profile-name={uuid}'] + common_arg))
+            # Set the command to launch the application with the common arguments and the profile UUID
+            button.config(command=lambda uuid=uuid: subprocess.run([app] + [f'--side-profile-name={uuid}'] + common_arg))
 
-				button.image = photo  # Keep a reference to the image
-				button.pack(pady=5)  # Add vertical padding
-
+            button.image = photo  # Keep a reference to the image
+            button.pack(pady=5)  # Add vertical padding
+        else:
+            print(f"Image file does not exist: {image_path}")
 
 # Function to create a new screen
 def create_new_screen(size=None):
@@ -117,6 +124,7 @@ def create_new_screen(size=None):
 		generate_buttons(new_root, strings, image_paths, uuids)
 
 		new_root.mainloop()
+
 # Function to compare entered password to stored password
 def compare_password(event=None):  # removed the event parameter
 		entered_password = password(password_input.get())
